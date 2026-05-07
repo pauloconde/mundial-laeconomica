@@ -1,0 +1,516 @@
+---
+import '../styles/global.css';
+import { fetchWorldCupData, getMatchUTC } from '../lib/worldcup';
+import sponsorInfo from '../data/sponsor.json';
+
+interface Props {
+  title?: string;
+  description?: string;
+  page?: 'home' | 'grupos' | 'estadios' | 'calendario';
+}
+
+const {
+  title = 'Mundial 2026',
+  description = 'Calendario oficial, grupos y resultados del Mundial FIFA 2026',
+  page = 'home'
+} = Astro.props;
+
+// Recoger todos los kickoffs para detección de partidos en vivo en el cliente
+const data = await fetchWorldCupData();
+const kickoffISOs = data.matches.map(m => getMatchUTC(m));
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#0a0e1a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>FIFA World Cup 2026{title !== 'Mundial 2026' ? ` | ${title}` : ''}</title>
+
+    <!-- Open Graph -->
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+
+    <!-- Capturar PWA Prompt tempranamente -->
+    <script is:inline>
+      window.deferredPrompt = null;
+      window.addEventListener('beforeinstallprompt', function (e) {
+        e.preventDefault();
+        window.deferredPrompt = e;
+        // Si el drawer ya está listo, mostrar el botón
+        var section = document.getElementById('install-android');
+        if (section) section.style.display = 'block';
+      });
+    </script>
+  </head>
+
+  <body class="bg-[#0a0e1a] text-white font-['Inter'] pb-24">
+
+    <!-- ── Splash Screen ── -->
+    <div
+      id="splash"
+      class="fixed inset-0 z-[9999] flex flex-col"
+      style="background: var(--brand-splash-bg);"
+    >
+      <!-- Logo FIFA — centrado en el espacio disponible -->
+      <div class="flex-1 flex items-center justify-center slide-up">
+        <img src="/logo-fifa.webp" alt="FIFA World Cup 2026"
+             class="w-72 max-w-[80vw] h-auto object-contain" />
+      </div>
+
+      <!-- Logo del sponsor — anclado al fondo con padding seguro -->
+      <div class="flex justify-center pb-10" style="padding-bottom: max(2.5rem, env(safe-area-inset-bottom, 2.5rem));">
+        <img src="/logo-splash.svg" alt="Sponsor"
+             class="h-64 w-auto max-w-[60vw] object-contain" />
+      </div>
+    </div>
+
+    <!-- ── Header ── -->
+    <header class="app-header fixed top-0 left-0 right-0 z-50"
+            style="padding-top: env(safe-area-inset-top, 0px);">
+      <div class="flex items-center justify-between px-4 h-14">
+        <!-- Logo del sponsor -->
+        <a href="/" class="flex items-center" id="header-logo">
+          <img src="/logo.webp" alt="Logo" class="h-8 w-auto max-w-[140px] object-contain" />
+        </a>
+
+        <div class="flex items-center gap-2">
+          <!-- Badge LIVE -->
+          <div id="live-badge"
+               class="hidden flex items-center gap-1.5 px-2 py-1 rounded-full"
+               style="background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3);">
+            <span class="live-dot"></span>
+            <span class="text-[10px] font-bold text-red-400 tracking-wider">LIVE</span>
+          </div>
+
+          <!-- Botón abrir drawer -->
+          <button id="drawer-open"
+                  class="w-9 h-9 flex items-center justify-center rounded-full transition-colors"
+                  style="color: var(--brand-nav-icon, #6b7280);"
+                  aria-label="Menú">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ── Drawer backdrop ── -->
+    <div id="drawer-backdrop"
+         class="fixed inset-0 z-[8000] bg-black/60 backdrop-blur-sm"
+         style="display:none; opacity:0; transition: opacity 0.3s;"
+         aria-hidden="true"></div>
+
+    <!-- ── Drawer panel ── -->
+    <aside id="drawer-panel"
+           class="fixed top-0 right-0 bottom-0 z-[8001] w-80 max-w-[90vw] flex flex-col"
+           style="background: var(--brand-nav-bg, #0a0e1a);
+                  border-left: 1px solid var(--border-subtle);
+                  transform: translateX(100%);
+                  transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+                  padding-top: env(safe-area-inset-top, 0px);">
+
+      <!-- Header del drawer -->
+      <div class="flex items-center justify-between px-5 h-14 border-b"
+           style="border-color: var(--border-subtle);">
+        <span class="font-['Outfit'] font-bold text-sm" style="color: var(--brand-nav-text, #fff);">FIFA World Cup 2026</span>
+        <button id="drawer-close" class="w-8 h-8 flex items-center justify-center rounded-full"
+                style="color: var(--brand-nav-icon, #6b7280);" aria-label="Cerrar">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Contenido -->
+      <div class="flex-1 overflow-y-auto px-5 py-6 flex flex-col gap-8">
+        
+        <!-- Logo Sponsor Grande -->
+        <div class="flex flex-col items-center gap-5 mt-4">
+          <img src={sponsorInfo.logoPath} alt={sponsorInfo.name} class="w-56 max-w-full h-auto object-contain" />
+          
+          <!-- Redes Sociales -->
+          <div class="flex items-center gap-6 mt-2">
+            <a href={sponsorInfo.instagram} target="_blank" rel="noopener" aria-label="Instagram" 
+               class="w-14 h-14 rounded-full flex items-center justify-center transition-colors"
+               style="background: rgba(255,255,255,0.08); color: var(--brand-nav-icon-active, #f59e0b);">
+              <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+                <path fill-rule="evenodd" d="M12.315 2c2.43 0 2.784.013 3.808.06 1.064.049 1.791.218 2.427.465a4.902 4.902 0 011.772 1.153 4.902 4.902 0 011.153 1.772c.247.636.416 1.363.465 2.427.048 1.067.06 1.407.06 4.123v.08c0 2.643-.012 2.987-.06 4.043-.049 1.064-.218 1.791-.465 2.427a4.902 4.902 0 01-1.153 1.772 4.902 4.902 0 01-1.772 1.153c-.636.247-1.363.416-2.427.465-1.067.048-1.407.06-4.123.06h-.08c-2.643 0-2.987-.012-4.043-.06-1.064-.049-1.791-.218-2.427-.465a4.902 4.902 0 01-1.772-1.153 4.902 4.902 0 01-1.153-1.772c-.247-.636-.416-1.363-.465-2.427-.047-1.024-.06-1.379-.06-3.808v-.63c0-2.43.013-2.784.06-3.808.049-1.064.218-1.791.465-2.427a4.902 4.902 0 011.153-1.772A4.902 4.902 0 015.45 2.525c.636-.247 1.363-.416 2.427-.465C8.901 2.013 9.256 2 11.685 2h.63zm-.081 1.802h-.468c-2.456 0-2.784.011-3.807.058-.975.045-1.504.207-1.857.344-.467.182-.8.398-1.15.748-.35.35-.566.683-.748 1.15-.137.353-.3.882-.344 1.857-.047 1.023-.058 1.351-.058 3.807v.468c0 2.456.011 2.784.058 3.807.045.975.207 1.504.344 1.857.182.466.399.8.748 1.15.35.35.683.566 1.15.748.353.137.882.3 1.857.344 1.054.048 1.37.058 4.041.058h.08c2.597 0 2.917-.01 3.96-.058.976-.045 1.505-.207 1.858-.344.466-.182.8-.398 1.15-.748.35-.35.566-.683.748-1.15.137-.353.3-.882.344-1.857.048-1.055.058-1.37.058-4.041v-.08c0-2.597-.01-2.917-.058-3.96-.045-.976-.207-1.505-.344-1.858a3.097 3.097 0 00-.748-1.15 3.098 3.098 0 00-1.15-.748c-.353-.137-.882-.3-1.857-.344-1.023-.047-1.351-.058-3.807-.058zM12 6.865a5.135 5.135 0 110 10.27 5.135 5.135 0 010-10.27zm0 1.802a3.333 3.333 0 100 6.666 3.333 3.333 0 000-6.666zm5.338-3.205a1.2 1.2 0 110 2.4 1.2 1.2 0 010-2.4z" clip-rule="evenodd" />
+              </svg>
+            </a>
+            <a href={sponsorInfo.whatsapp} target="_blank" rel="noopener" aria-label="WhatsApp" 
+               class="w-14 h-14 rounded-full flex items-center justify-center transition-colors"
+               style="background: rgba(255,255,255,0.08); color: var(--brand-nav-icon-active, #f59e0b);">
+              <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+        
+        <nav class="flex flex-col gap-2 mt-4 px-2" style="color: var(--brand-app-bg, #053332);">
+          <a href="/" class={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-colors ${page === 'home' ? 'bg-black/5 text-[var(--brand-nav-icon-active,#f59e0b)]' : 'hover:bg-black/5'}`}>
+            <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            <span class="font-semibold text-sm">Inicio</span>
+          </a>
+          
+          <a href="/grupos" class={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-colors ${page === 'grupos' ? 'bg-black/5 text-[var(--brand-nav-icon-active,#f59e0b)]' : 'hover:bg-black/5'}`}>
+            <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18M10 3v18M14 3v18" />
+            </svg>
+            <span class="font-semibold text-sm">Grupos</span>
+          </a>
+          
+          <a href="/estadios" class={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-colors ${page === 'estadios' ? 'bg-black/5 text-[var(--brand-nav-icon-active,#f59e0b)]' : 'hover:bg-black/5'}`}>
+            <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span class="font-semibold text-sm">Estadios</span>
+          </a>
+          
+          <a href="/calendario" class={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-colors ${page === 'calendario' ? 'bg-black/5 text-[var(--brand-nav-icon-active,#f59e0b)]' : 'hover:bg-black/5'}`}>
+            <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <line x1="16" y1="2" x2="16" y2="6" stroke-linecap="round"/>
+              <line x1="8" y1="2" x2="8" y2="6" stroke-linecap="round"/>
+              <line x1="3" y1="10" x2="21" y2="10" stroke-linecap="round"/>
+            </svg>
+            <span class="font-semibold text-sm">Calendario</span>
+          </a>
+        </nav>
+        
+        <hr class="border-t border-[var(--border-subtle)] my-2 opacity-50" />
+
+        <div class="space-y-6">
+          <!-- Botón instalar Android -->
+          <div id="install-android" style="display:none;" class="mt-4 px-2">
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-3 text-center">Instalar app</p>
+            <button id="install-btn"
+                    class="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl font-semibold text-sm transition-transform active:scale-95 hover:opacity-90"
+                    style="background: var(--brand-nav-icon-active, #f59e0b); color: #000; box-shadow: 0 4px 14px rgba(0,0,0,0.15);">
+              <svg class="w-5 h-5 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M17.523 15.341 14 12l3.523-3.341A1 1 0 0 0 16.8 7H7.2a1 1 0 0 0-.723 1.659L10 12l-3.523 3.341A1 1 0 0 0 7.2 17h9.6a1 1 0 0 0 .723-1.659Z"/>
+              </svg>
+              Instalar en Android
+            </button>
+          </div>
+
+          <!-- Guía instalar iOS -->
+          <div id="install-ios" style="display:none;">
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-gray-500 mb-2">Instalar en iPhone</p>
+            <div class="rounded-2xl p-4 space-y-3 text-sm" style="background: rgba(0,0,0,0.2);">
+              <div class="flex items-start gap-3">
+                <span class="text-xl shrink-0">1️⃣</span>
+                <p style="color: var(--brand-nav-text, #d1d5db);">Toca el botón <strong>Compartir</strong> <span class="inline-block">&#x1F4E4;</span> en Safari</p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-xl shrink-0">2️⃣</span>
+                <p style="color: var(--brand-nav-text, #d1d5db);">Selecciona <strong>“Añadir a inicio”</strong></p>
+              </div>
+              <div class="flex items-start gap-3">
+                <span class="text-xl shrink-0">3️⃣</span>
+                <p style="color: var(--brand-nav-text, #d1d5db);">Toca <strong>“Añadir”</strong> en la esquina superior derecha</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer del drawer -->
+      <div class="px-5 py-1 pb-4">
+        <p class="text-[11px] text-center text-gray-400 relative z-10">
+          Desarrollado para <a href={sponsorInfo.website} target="_blank" rel="noopener" class="text-white font-semibold hover:underline" style="color: var(--brand-nav-icon-active, #f59e0b);">{sponsorInfo.name}</a> por
+        </p>
+        <div class="flex justify-center items-center -mt-14 -mb-10 relative z-0">
+          <a href="https://pauloconde.dev" target="_blank" rel="noopener" class="hover:opacity-80 transition-opacity">
+            <img src="/paulocondedev.png" alt="pauloconde.dev" class="h-48 w-auto object-contain" />
+          </a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ── Main Content ── -->
+    <main class="pt-14 min-h-screen">
+      <slot />
+    </main>
+
+    <!-- ── Script: Detección de partido en vivo ── -->
+    <script define:vars={{ kickoffISOs }}>
+      (function () {
+        var MATCH_DURATION_MS = 110 * 60 * 1000; // 110 minutos
+
+        function checkLive() {
+          var now = Date.now();
+          var isLive = kickoffISOs.some(function (iso) {
+            var kick = new Date(iso).getTime();
+            return now >= kick && now <= kick + MATCH_DURATION_MS;
+          });
+          var badge = document.getElementById('live-badge');
+          if (!badge) return;
+          if (isLive) {
+            badge.classList.remove('hidden');
+          } else {
+            badge.classList.add('hidden');
+          }
+        }
+
+        checkLive();
+        setInterval(checkLive, 60000); // re-evalúa cada minuto
+      })();
+    </script>
+
+    <!-- ── Script: Hora local del usuario ── -->
+    <!--
+      Todos los elementos con data-utc="<ISO>" se convierten al timezone del navegador.
+      data-fmt puede ser: "time" | "date" | "datetime" (default: "time")
+    -->
+    <script is:inline>
+      (function () {
+        function formatLocal(isoStr, fmt) {
+          try {
+            const d = new Date(isoStr);
+            if (isNaN(d)) return null;
+            if (fmt === 'date-full') {
+              const str = d.toLocaleDateString('es', {
+                weekday: 'long', day: 'numeric', month: 'long'
+              });
+              return str.charAt(0).toUpperCase() + str.slice(1);
+            }
+            if (fmt === 'date') {
+              return d.toLocaleDateString('es', {
+                weekday: 'short', day: 'numeric', month: 'short'
+              });
+            }
+            if (fmt === 'date-short') {
+              return d.toLocaleDateString('es', {
+                day: 'numeric', month: 'short'
+              });
+            }
+            if (fmt === 'datetime') {
+              return d.toLocaleDateString('es', {
+                weekday: 'short', day: 'numeric', month: 'short'
+              }) + ' · ' + d.toLocaleTimeString('es', {
+                hour: 'numeric', minute: '2-digit', hour12: true
+              });
+            }
+            // default: "time"
+            return d.toLocaleTimeString('es', {
+              hour: 'numeric', minute: '2-digit', hour12: true
+            });
+          } catch (e) {
+            return null;
+          }
+        }
+
+        function applyLocalTimes() {
+          document.querySelectorAll('[data-utc]').forEach(function (el) {
+            var iso = el.getAttribute('data-utc');
+            var fmt = el.getAttribute('data-fmt') || 'time';
+            var text = formatLocal(iso, fmt);
+            if (text) el.textContent = text;
+          });
+        }
+
+        // Ejecutar inmediatamente si el DOM ya cargó, si no esperar
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', applyLocalTimes);
+        } else {
+          applyLocalTimes();
+        }
+      })();
+    </script>
+
+    <!-- ── Script: Drag-to-scroll en carruseles (desktop) ── -->
+    <script is:inline>
+      (function () {
+        function initCarousel(el) {
+          var isDown  = false;
+          var startX  = 0;
+          var scrollL = 0;
+          var moved   = false;
+
+          el.style.cursor = 'grab';
+
+          el.addEventListener('mousedown', function (e) {
+            isDown  = true;
+            moved   = false;
+            startX  = e.pageX - el.offsetLeft;
+            scrollL = el.scrollLeft;
+            el.style.cursor = 'grabbing';
+            el.style.userSelect = 'none';
+          });
+
+          el.addEventListener('mouseleave', function () {
+            isDown = false;
+            el.style.cursor = 'grab';
+          });
+
+          el.addEventListener('mouseup', function () {
+            isDown = false;
+            el.style.cursor = 'grab';
+            el.style.userSelect = '';
+          });
+
+          el.addEventListener('mousemove', function (e) {
+            if (!isDown) return;
+            e.preventDefault();
+            var x    = e.pageX - el.offsetLeft;
+            var walk = (x - startX) * 1.2;
+            if (Math.abs(walk) > 4) moved = true;
+            el.scrollLeft = scrollL - walk;
+          });
+
+          // Evitar que un drag dispare clicks en los hijos
+          el.addEventListener('click', function (e) {
+            if (moved) { e.preventDefault(); e.stopPropagation(); moved = false; }
+          }, true);
+        }
+
+        function setup() {
+          document.querySelectorAll('.carousel-track').forEach(initCarousel);
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', setup);
+        } else {
+          setup();
+        }
+      })();
+    </script>
+
+    <!-- ── Bottom Navigation ── -->
+    <nav class="app-nav fixed bottom-0 left-0 right-0 z-50 bottom-nav" id="bottom-nav">
+      <div class="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
+
+        <a href="/" id="nav-home"
+           class={`app-nav-item flex flex-col items-center gap-0.5 px-4 py-2 rounded-xl transition-all duration-200 ${page === 'home' ? 'nav-active' : ''}`}>
+          <svg class="nav-icon w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+          <span class="nav-label text-[10px] font-semibold">Inicio</span>
+        </a>
+
+        <a href="/grupos" id="nav-grupos"
+           class={`app-nav-item flex flex-col items-center gap-0.5 px-4 py-2 rounded-xl transition-all duration-200 ${page === 'grupos' ? 'nav-active' : ''}`}>
+          <svg class="nav-icon w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18M10 3v18M14 3v18" />
+          </svg>
+          <span class="nav-label text-[10px] font-semibold">Grupos</span>
+        </a>
+
+        <a href="/estadios" id="nav-estadios"
+           class={`app-nav-item flex flex-col items-center gap-0.5 px-4 py-2 rounded-xl transition-all duration-200 ${page === 'estadios' ? 'nav-active' : ''}`}>
+          <svg class="nav-icon w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span class="nav-label text-[10px] font-semibold">Estadios</span>
+        </a>
+
+        <a href="/calendario" id="nav-calendario"
+           class={`app-nav-item flex flex-col items-center gap-0.5 px-4 py-2 rounded-xl transition-all duration-200 ${page === 'calendario' ? 'nav-active' : ''}`}>
+          <svg class="nav-icon w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <line x1="16" y1="2" x2="16" y2="6" stroke-linecap="round"/>
+            <line x1="8" y1="2" x2="8" y2="6" stroke-linecap="round"/>
+            <line x1="3" y1="10" x2="21" y2="10" stroke-linecap="round"/>
+          </svg>
+          <span class="nav-label text-[10px] font-semibold">Calendario</span>
+        </a>
+
+      </div>
+    </nav>
+
+    <!-- ── Script: Drawer + PWA Install ── -->
+    <script is:inline>
+      (function () {
+        var panel    = document.getElementById('drawer-panel');
+        var backdrop = document.getElementById('drawer-backdrop');
+        var btnOpen  = document.getElementById('drawer-open');
+        var btnClose = document.getElementById('drawer-close');
+        var deferredPrompt = null;
+
+        function openDrawer() {
+          backdrop.style.display = 'block';
+          requestAnimationFrame(function () {
+            backdrop.style.opacity = '1';
+            panel.style.transform  = 'translateX(0)';
+          });
+          document.body.style.overflow = 'hidden';
+        }
+
+        function closeDrawer() {
+          backdrop.style.opacity = '0';
+          panel.style.transform  = 'translateX(100%)';
+          setTimeout(function () {
+            backdrop.style.display = 'none';
+            document.body.style.overflow = '';
+          }, 350);
+        }
+
+        btnOpen.addEventListener('click', openDrawer);
+        btnClose.addEventListener('click', closeDrawer);
+        backdrop.addEventListener('click', closeDrawer);
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape') closeDrawer();
+        });
+
+        // ── PWA Install: Android ──
+        var section = document.getElementById('install-android');
+        
+        // Mostrar SOLO si el navegador permite la instalación automática
+        if (window.deferredPrompt && section) {
+          section.style.display = 'block';
+        }
+
+        var installBtn = document.getElementById('install-btn');
+        if (installBtn) {
+          installBtn.addEventListener('click', function () {
+            if (!window.deferredPrompt) return;
+            window.deferredPrompt.prompt();
+            window.deferredPrompt.userChoice.then(function () {
+              window.deferredPrompt = null;
+              if (section) section.style.display = 'none';
+            });
+          });
+        }
+
+        // ── PWA Install: iOS (Safari) ──
+        var isIOS    = /iphone|ipad|ipod/i.test(navigator.userAgent);
+        var isSafari = /safari/i.test(navigator.userAgent) && !/chrome/i.test(navigator.userAgent);
+        var isStandalone = ('standalone' in window.navigator) && window.navigator.standalone;
+        
+        // Para previsualizar en escritorio durante el desarrollo (opcional)
+        // if (window.location.hostname === 'localhost') {
+        //   var iosSection = document.getElementById('install-ios');
+        //   if (iosSection) iosSection.style.display = 'block';
+        //   if (section) section.style.display = 'block';
+        // }
+
+        if (isIOS && isSafari && !isStandalone) {
+          var iosSection = document.getElementById('install-ios');
+          if (iosSection) iosSection.style.display = 'block';
+        }
+      })();
+    </script>
+
+  </body>
+</html>
+
+<style>
+  /* Solo lo que no puede ir en global.css */
+  #splash { pointer-events: none; }
+</style>
