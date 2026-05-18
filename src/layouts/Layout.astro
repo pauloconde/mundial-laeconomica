@@ -9,7 +9,7 @@ import { pwaInfo } from 'virtual:pwa-info';
 interface Props {
   title?: string;
   description?: string;
-  page?: 'home' | 'grupos' | 'estadios' | 'calendario';
+  page?: 'home' | 'grupos' | 'estadios' | 'calendario' | 'quiniela';
 }
 
 const {
@@ -323,6 +323,15 @@ const kickoffISOs = data.matches.map(m => getMatchUTC(m));
             </svg>
             <span class="font-semibold text-sm">Calendario</span>
           </a>
+          
+          {sponsorInfo.hasQuiniela && (
+            <a href="/quiniela" class={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-colors ${page === 'quiniela' ? 'bg-black/5 text-[var(--brand-nav-icon-active,#f59e0b)]' : 'hover:bg-black/5'}`}>
+              <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+              </svg>
+              <span class="font-semibold text-sm">Quiniela</span>
+            </a>
+          )}
         </nav>
 
       </div>
@@ -577,6 +586,16 @@ const kickoffISOs = data.matches.map(m => getMatchUTC(m));
           </svg>
           <span class="nav-label text-[10px] font-semibold">Calendario</span>
         </a>
+
+        {sponsorInfo.hasQuiniela && (
+          <a href="/quiniela" id="nav-quiniela"
+             class={`app-nav-item flex flex-col items-center gap-0.5 px-4 py-2 rounded-xl transition-all duration-200 ${page === 'quiniela' ? 'nav-active' : ''}`}>
+            <svg class="nav-icon w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+            <span class="nav-label text-[10px] font-semibold">Quiniela</span>
+          </a>
+        )}
 
       </div>
     </nav>

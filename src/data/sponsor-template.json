@@ -14,6 +14,12 @@
   "email": "",
   "address": "",
   "googleMaps": "",
+  "hasQuiniela": true,
+  "quinielaTitle": "⚽ Gran Quiniela 🏆",
+  "quinielaDescription": "Acierta el 1er y 2do lugar del Mundial y gana increíbles premios con nosotros.",
+  "quinielaId": "template_sponsor",
+  "quinielaEndDate": "2026-06-11T23:59:00Z",
+  "quinielaPrizeImage": "/assets/premios/premio-default.png",
   "theme": "dark",
   "colors": {
     "appBg": "#080210",
