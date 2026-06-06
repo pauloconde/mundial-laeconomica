@@ -38,8 +38,10 @@ const teams = Object.entries(TEAM_ES)
       <p class="text-[var(--text-secondary)] text-sm mb-6 px-4">{sponsorInfo.quinielaDescription || 'Acierta el 1er y 2do lugar del Mundial y gana increíbles premios con nosotros.'}</p>
 
       {sponsorInfo.quinielaPrizeImage && (
-        <div class="mb-8 rounded-3xl overflow-hidden glass p-2 inline-block slide-up shadow-xl">
-          <img src={sponsorInfo.quinielaPrizeImage} alt="Premio de la Quiniela" class="w-full max-w-[300px] h-auto rounded-2xl object-cover" onerror="this.style.display='none'" />
+        <div class="mb-6 text-center relative z-10">
+          <button type="button" id="open-prize-btn" class="text-[var(--brand-nav-icon-active,#f59e0b)] text-sm font-bold hover:underline transition-all flex items-center justify-center gap-1.5 mx-auto">
+            <span>🎁 Ver Premios</span>
+          </button>
         </div>
       )}
 
@@ -87,7 +89,7 @@ const teams = Object.entries(TEAM_ES)
             </div>
 
             <div class="space-y-1.5">
-              <label class="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-wider ml-1">Instagram (Obligatorio)</label>
+              <label class="text-[10px] font-bold text-[var(--text-primary)] uppercase tracking-wider ml-1">Instagram</label>
               <input type="text" id="instagram" placeholder="@usuario" class="w-full bg-[var(--bg-primary)] border border-[var(--border-subtle)] rounded-xl px-4 py-3 text-[var(--text-primary)] text-sm outline-none focus:border-[var(--brand-nav-icon-active,#f59e0b)] transition-colors" required />
             </div>
 
@@ -179,6 +181,17 @@ const teams = Object.entries(TEAM_ES)
           </div>
         </div>
       )}
+
+      {sponsorInfo.quinielaPrizeImage && (
+        <div id="prize-modal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 hidden opacity-0 transition-opacity duration-300">
+          <button type="button" id="close-prize-btn" class="absolute top-6 right-6 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 rounded-full w-10 h-10 flex items-center justify-center transition-all z-10 text-lg">
+            ✕
+          </button>
+          <div class="relative max-w-[90vw] max-h-[85vh] transition-transform duration-300 scale-95 flex items-center justify-center">
+            <img src={sponsorInfo.quinielaPrizeImage} alt="Premio de la Quiniela" class="max-w-full max-h-[85vh] object-contain rounded-2xl" onerror="this.style.display='none'" />
+          </div>
+        </div>
+      )}
     </div>
   </section>
 </Layout>
@@ -187,6 +200,32 @@ const teams = Object.entries(TEAM_ES)
   import { supabase } from '../lib/supabase';
 
   document.addEventListener('DOMContentLoaded', () => {
+    // Lógica del modal de Premios
+    const openPrizeBtn = document.getElementById('open-prize-btn');
+    const closePrizeBtn = document.getElementById('close-prize-btn');
+    const prizeModal = document.getElementById('prize-modal');
+
+    if (openPrizeBtn && prizeModal && closePrizeBtn) {
+      const closeModal = () => {
+        prizeModal.classList.add('opacity-0');
+        prizeModal.querySelector('.relative')?.classList.add('scale-95');
+        setTimeout(() => prizeModal.classList.add('hidden'), 300);
+      };
+
+      openPrizeBtn.addEventListener('click', () => {
+        prizeModal.classList.remove('hidden');
+        // Forzar reflow
+        void prizeModal.offsetWidth;
+        prizeModal.classList.remove('opacity-0');
+        prizeModal.querySelector('.relative')?.classList.remove('scale-95');
+      });
+
+      closePrizeBtn.addEventListener('click', closeModal);
+      prizeModal.addEventListener('click', (e) => {
+        if (e.target === prizeModal) closeModal();
+      });
+    }
+
     // Lógica del modal de Bases
     const openBasesBtn = document.getElementById('open-bases-btn');
     const closeBasesBtn = document.getElementById('close-bases-btn');

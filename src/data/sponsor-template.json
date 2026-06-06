@@ -28,7 +28,7 @@
     "appBg": "#080210",
     "appIconsBg": "#080210",
     "splashBg": "linear-gradient(135deg, #080210 0%, #3d1079 50%, #080210 100%)",
-    "headerBg": "rgba(255, 255, 255)",
+    "headerBg": "#fff",
     "headerText": "#9ca3af",
     "navBg": "#ffffff",
     "navText": "#080210",
