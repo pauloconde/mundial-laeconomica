@@ -79,7 +79,7 @@ const nextMatchUTC = nextMatch ? getMatchUTC(nextMatch) : null;
                 class="w-14 h-10 object-cover rounded-lg shadow-lg"
                 onerror="this.style.display='none'"
               />
-              <span class="font-bold text-sm leading-tight">{translateTeam(nextMatch.team1)}</span>
+              <span class="team1-name-span font-bold text-sm leading-tight">{translateTeam(nextMatch.team1)}</span>
             </div>
 
             <!-- Centro: marcador o hora -->
@@ -121,7 +121,7 @@ const nextMatchUTC = nextMatch ? getMatchUTC(nextMatch) : null;
                 class="w-14 h-10 object-cover rounded-lg shadow-lg"
                 onerror="this.style.display='none'"
               />
-              <span class="font-bold text-sm leading-tight">{translateTeam(nextMatch.team2)}</span>
+              <span class="team2-name-span font-bold text-sm leading-tight">{translateTeam(nextMatch.team2)}</span>
             </div>
 
           </div>
@@ -222,7 +222,7 @@ const nextMatchUTC = nextMatch ? getMatchUTC(nextMatch) : null;
                     <img src={getFlagUrl(match.team1)} alt={translateTeam(match.team1)}
                          class="w-10 h-7 object-cover rounded shadow"
                          onerror="this.style.display='none'" />
-                    <span class="text-xs font-bold text-center leading-tight">{translateTeam(match.team1)}</span>
+                    <span class="team1-name-span text-xs font-bold text-center leading-tight">{translateTeam(match.team1)}</span>
                   </div>
 
                   <div class="flex flex-col items-center px-2 match-score-container">
@@ -259,7 +259,7 @@ const nextMatchUTC = nextMatch ? getMatchUTC(nextMatch) : null;
                     <img src={getFlagUrl(match.team2)} alt={translateTeam(match.team2)}
                          class="w-10 h-7 object-cover rounded shadow"
                          onerror="this.style.display='none'" />
-                    <span class="text-xs font-bold text-center leading-tight">{translateTeam(match.team2)}</span>
+                    <span class="team2-name-span text-xs font-bold text-center leading-tight">{translateTeam(match.team2)}</span>
                   </div>
                 </div>
 

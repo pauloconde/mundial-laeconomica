@@ -926,7 +926,31 @@ const kickoffISOs = data.matches.map(m => getMatchUTC(m));
         // 2. Actualizar Scoreboard
         if (scoreContainer) {
           if (match.estado === 'programado') {
-            scoreContainer.innerHTML = `<span class="text-xs text-gray-600 font-bold">vs</span>`;
+            if (isHero) {
+              scoreContainer.innerHTML = `
+                <div class="text-center">
+                  <p class="font-['Outfit'] font-black text-2xl text-[var(--text-primary)]">
+                    <time data-utc="${match.fecha_inicio_utc}" data-fmt="time">--:--</time>
+                  </p>
+                  <p class="text-xs text-[var(--text-secondary)] mt-1">
+                    <time data-utc="${match.fecha_inicio_utc}" data-fmt="date">…</time>
+                  </p>
+                </div>
+              `;
+            } else if (isCarousel) {
+              scoreContainer.innerHTML = `
+                <div class="text-center">
+                  <p class="font-['Outfit'] font-bold text-base text-amber-400">
+                    <time data-utc="${match.fecha_inicio_utc}" data-fmt="time">--:--</time>
+                  </p>
+                  <p class="text-[9px] text-[var(--text-secondary)] mt-0.5">
+                    <time data-utc="${match.fecha_inicio_utc}" data-fmt="date-short">…</time>
+                  </p>
+                </div>
+              `;
+            } else {
+              scoreContainer.innerHTML = `<span class="text-xs text-gray-600 font-bold">vs</span>`;
+            }
           } else {
             let scoreHtml = `<span class="font-['Outfit'] font-black text-xl ${isHero ? 'text-3xl' : ''} gradient-text">${match.goles_team1} - ${match.goles_team2}</span>`;
             if (match.penales_team1 !== null && match.penales_team2 !== null) {
