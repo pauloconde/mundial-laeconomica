@@ -68,9 +68,14 @@ import sponsorInfo from '../data/sponsor.json';
           <span id="penalties-score-text" class="text-xs font-black uppercase tracking-wider text-amber-500 mt-1 hidden">
             (0 - 0 Pen)
           </span>
-          <span id="match-minute-counter" class="text-xs font-bold text-amber-500 mt-1.5 hidden animate-pulse">
-            1'
-          </span>
+          <div class="flex items-center justify-center gap-1.5 mt-1.5">
+            <span id="match-minute-counter" class="text-xs font-bold text-amber-500 hidden animate-pulse">
+              1'
+            </span>
+            <span id="match-stoppage-badge" class="text-[10px] font-black bg-red-500/15 text-red-400 border border-red-500/30 px-1.5 py-0.5 rounded hidden">
+              +0
+            </span>
+          </div>
         </div>
 
         <!-- Visitante -->
@@ -518,12 +523,22 @@ import sponsorInfo from '../data/sponsor.json';
 
     // Estado y Minuto
     if (statusBadge) {
+      const stoppageBadge = document.getElementById('match-stoppage-badge');
       if (partido.estado === 'en_curso') {
         statusBadge.textContent = "EN VIVO";
         statusBadge.style.color = '#ef4444';
         statusBadge.style.borderColor = 'rgba(239, 68, 68, 0.4)';
         statusBadge.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
         if (liveDot) liveDot.classList.remove('hidden');
+        
+        if (stoppageBadge) {
+          if (partido.tiempo_adicional > 0) {
+            stoppageBadge.textContent = `+${partido.tiempo_adicional}`;
+            stoppageBadge.classList.remove('hidden');
+          } else {
+            stoppageBadge.classList.add('hidden');
+          }
+        }
         
         if (minuteCounter) {
           minuteCounter.classList.remove('hidden', 'text-[var(--text-secondary)]', 'font-semibold');
@@ -533,6 +548,7 @@ import sponsorInfo from '../data/sponsor.json';
           if (min > 120) {
             minuteCounter.textContent = "Tanda de Penaltis";
             minuteCounter.classList.remove('animate-pulse');
+            if (stoppageBadge) stoppageBadge.classList.add('hidden');
           } else if (partido.cronometro_corriendo && partido.hora_inicio_periodo) {
             updateStopwatchDisplay(min, partido.hora_inicio_periodo, partido.tiempo_adicional || 0);
           } else {
@@ -547,6 +563,7 @@ import sponsorInfo from '../data/sponsor.json';
         statusBadge.style.borderColor = 'rgba(16, 185, 129, 0.4)';
         statusBadge.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
         if (liveDot) liveDot.classList.add('hidden');
+        if (stoppageBadge) stoppageBadge.classList.add('hidden');
         if (minuteCounter) {
           minuteCounter.textContent = "TC (Tiempo Completo)";
           minuteCounter.classList.remove('hidden', 'text-amber-500', 'animate-pulse');
@@ -558,6 +575,7 @@ import sponsorInfo from '../data/sponsor.json';
         statusBadge.style.borderColor = 'rgba(255, 255, 255, 0.15)';
         statusBadge.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
         if (liveDot) liveDot.classList.add('hidden');
+        if (stoppageBadge) stoppageBadge.classList.add('hidden');
         if (timeline) {
           timeline.innerHTML = '';
         }
