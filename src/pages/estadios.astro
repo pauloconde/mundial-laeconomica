@@ -258,6 +258,7 @@ const canada = venuesWithMatches.filter(v => v.countryEn === 'Canada');
         var d = new Date(isoStr);
         var date = d.toLocaleDateString('es', { day: 'numeric', month: 'short' });
         var time = d.toLocaleTimeString('es', { hour: 'numeric', minute: '2-digit', hour12: true });
+        time = time.replace(/([ap])\.\s*m\./gi, '$1m').replace(/\s+([ap]m)/gi, '\u00A0$1');
         return { date: date, time: time };
       } catch(e) { return { date: '', time: '' }; }
     }

@@ -598,16 +598,20 @@ const kickoffISOs = data.matches.map(m => getMatchUTC(m));
               });
             }
             if (fmt === 'datetime') {
-              return d.toLocaleDateString('es', {
+              var datePart = d.toLocaleDateString('es', {
                 weekday: 'short', day: 'numeric', month: 'short'
-              }) + ' · ' + d.toLocaleTimeString('es', {
+              });
+              var timePart = d.toLocaleTimeString('es', {
                 hour: 'numeric', minute: '2-digit', hour12: true
               });
+              timePart = timePart.replace(/([ap])\.\s*m\./gi, '$1m').replace(/\s+([ap]m)/gi, '\u00A0$1');
+              return datePart + ' · ' + timePart;
             }
             // default: "time"
-            return d.toLocaleTimeString('es', {
+            var tStr = d.toLocaleTimeString('es', {
               hour: 'numeric', minute: '2-digit', hour12: true
             });
+            return tStr.replace(/([ap])\.\s*m\./gi, '$1m').replace(/\s+([ap]m)/gi, '\u00A0$1');
           } catch (e) {
             return null;
           }

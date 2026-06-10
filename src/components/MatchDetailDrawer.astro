@@ -182,11 +182,12 @@ import sponsorInfo from '../data/sponsor.json';
         day: 'numeric',
         month: 'short'
       });
-      const timePart = d.toLocaleTimeString('es', {
+      var timePart = d.toLocaleTimeString('es', {
         hour: 'numeric',
         minute: '2-digit',
         hour12: true
       });
+      timePart = timePart.replace(/([ap])\.\s*m\./gi, '$1m').replace(/\s+([ap]m)/gi, '\u00A0$1');
       const capitalizedDate = datePart.charAt(0).toUpperCase() + datePart.slice(1);
       return `${capitalizedDate} · ${timePart}`;
     } catch (e) {
