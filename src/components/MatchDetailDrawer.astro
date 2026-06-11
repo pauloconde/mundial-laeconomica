@@ -663,10 +663,28 @@ import sponsorInfo from '../data/sponsor.json';
     if (emptyState) emptyState.classList.add('hidden');
 
     // Ordenar descendente (sucesos más recientes arriba)
+    // El orden de periodos define la prioridad, no el minuto bruto
+    // Esto evita que 45+7' (1T) aparezca encima de 45' (2T)
+    const PERIOD_ORDER: Record<string, number> = {
+      'PEN': 6, '2TS': 5, '1TS': 4, '2T': 3, '1T': 2,
+      // Fallbacks legacy
+      'penaltis': 6, 'segundo_extra': 5, 'primer_extra': 4,
+      'segundo_tiempo': 3, 'primer_tiempo': 2
+    };
+
     const sorted = [...eventos].sort((a, b) => {
-      if (b.minuto !== a.minuto) {
-        return b.minuto - a.minuto;
-      }
+      const periodA = a.periodo || getPeriod(a.minuto);
+      const periodB = b.periodo || getPeriod(b.minuto);
+      const orderA = PERIOD_ORDER[periodA] ?? 1;
+      const orderB = PERIOD_ORDER[periodB] ?? 1;
+
+      // 1. Ordenar por periodo (mayor periodo primero)
+      if (orderB !== orderA) return orderB - orderA;
+
+      // 2. Dentro del mismo periodo, ordenar por minuto descendente
+      if (b.minuto !== a.minuto) return b.minuto - a.minuto;
+
+      // 3. Desempate por fecha de creación
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
 
